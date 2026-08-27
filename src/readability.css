@@ -1,0 +1,110 @@
+/* Global readability pass for high-DPI desktop displays. */
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.topbar p,
+.status,
+.recommendation p,
+.movement-selects small,
+.simple-list span,
+.history-season-summary span,
+.history-move small,
+.panel-meta,
+.sidebar-note small,
+.team-needs-view .tn-footnote,
+.team-needs-view .manual-wrap small,
+.team-needs-view .need-result small,
+.team-needs-view .tn-panel-meta {
+  font-size: 11px !important;
+  line-height: 1.5;
+}
+
+.eyebrow,
+.combined-nav-label,
+.summary span,
+.tier,
+.recommendation > span,
+.history-move-type,
+.team-needs-view .tn-summary span,
+.team-needs-view .roster-section-divider td,
+.team-needs-view .needs-table th {
+  font-size: 9px !important;
+  letter-spacing: .12em;
+}
+
+.sidebar nav > button,
+.combined-subnav button {
+  font-size: 11px !important;
+  line-height: 1.35;
+}
+
+.brand.has-team-identity strong {
+  font-size: 17px !important;
+}
+
+.brand.has-team-identity small {
+  font-size: 8px !important;
+}
+
+.status {
+  min-height: 38px;
+}
+
+.summary small {
+  font-size: 11px !important;
+}
+
+.pair-mini strong,
+.movement-selects select,
+.movement-selects .move-label,
+.simple-list strong,
+th,
+td {
+  font-size: 11px;
+}
+
+.movement-card .recommendation p,
+.movement-card .movement-selects small {
+  line-height: 1.45;
+}
+
+.history-pair-head {
+  font-size: 12px;
+}
+
+.history-move strong {
+  font-size: 14px;
+}
+
+.team-needs-view .position-name strong {
+  font-size: 13px !important;
+}
+
+.team-needs-view .count,
+.team-needs-view .total-row td,
+.team-needs-view .needs-table td {
+  font-size: 12px !important;
+}
+
+.team-needs-view .needs-table th,
+.team-needs-view .needs-table td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.team-needs-view .tn-summary small {
+  font-size: 10px !important;
+  line-height: 1.4;
+}
+
+.team-needs-view .tn-manual {
+  font-size: 12px;
+}
+
+button,
+select,
+input {
+  -webkit-font-smoothing: antialiased;
+}
