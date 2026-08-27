@@ -15,15 +15,12 @@ type IdentityDynasty = {
   teams: IdentityTeam[];
 };
 
-declare global {
-  interface Window {
-    teamNeedsAPI: {
-      sync: () => Promise<IdentityDynasty>;
-      getTeamBranding: (teamName: string) => Promise<TeamBranding | null>;
-    };
-  }
-}
+type TeamNeedsIdentityAPI = {
+  sync: () => Promise<IdentityDynasty>;
+  getTeamBranding: (teamName: string) => Promise<TeamBranding | null>;
+};
 
+const teamNeedsAPI = (window as unknown as { teamNeedsAPI: TeamNeedsIdentityAPI }).teamNeedsAPI;
 const brand = document.querySelector<HTMLElement>('.brand');
 const globalImport = document.querySelector<HTMLButtonElement>('#globalImportBtn');
 const teamNeedsSync = document.querySelector<HTMLButtonElement>('#teamNeedsSyncBtn');
@@ -54,7 +51,7 @@ function renderDefault(): void {
 async function renderTeam(teamName: string): Promise<void> {
   if (!brand || !teamName) return;
   activeTeamName = teamName;
-  const branding = await window.teamNeedsAPI.getTeamBranding(teamName).catch(() => null);
+  const branding = await teamNeedsAPI.getTeamBranding(teamName).catch(() => null);
   const displayName = branding?.displayName || teamName;
   brand.classList.add('has-team-identity');
   if (branding?.color) brand.style.setProperty('--team-primary', branding.color);
@@ -74,7 +71,7 @@ async function resolveFromSharedSave(): Promise<void> {
   if (!brand || resolving) return;
   resolving = true;
   try {
-    const loaded = await window.teamNeedsAPI.sync();
+    const loaded = await teamNeedsAPI.sync();
     const userTeams = loaded.teams.filter((team) => team.isUserControlled);
     const selectedValue = teamSelect && !teamSelect.hidden ? Number(teamSelect.value) : Number.NaN;
     const selected = userTeams.find((team) => team.teamIndex === selectedValue);
