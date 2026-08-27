@@ -1,0 +1,33 @@
+.offseason-module-header {
+  margin: 3px 0 4px;
+  padding: 10px 12px 9px;
+  border-left: 2px solid #3d6f91;
+  background: linear-gradient(90deg, rgba(39, 84, 114, .12), transparent 82%);
+  color: #d9e4eb;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.offseason-subnav {
+  margin: 0 0 8px 14px;
+  padding: 2px 0 2px 10px;
+  border-left: 1px solid #253640;
+}
+
+.offseason-subnav button {
+  min-height: 31px;
+  padding: 6px 9px;
+}
+
+.offseason-subnav button::before {
+  left: -13px;
+}
+
+.offseason-subnav button.active::before {
+  left: -14px;
+}
+
+.brand.has-team-identity strong {
+  margin-top: 0;
+}
