@@ -1,3 +1,6 @@
+import { app } from 'electron';
+import { migrateLegacyPromoData } from './legacy-history-migration';
+
 export type TeamNeedsBranding = {
   logoUrl: string;
   color: string;
@@ -17,6 +20,18 @@ type EspnTeamResponse = {
 };
 
 const cache = new Map<string, TeamNeedsBranding | null>();
+
+// This module is loaded by the Electron main process before the app window is
+// created. Run the one-time legacy data merge here so old Promotion/Relegation
+// seasons are available before the user imports/syncs the dynasty in Utilities.
+app.whenReady().then(async () => {
+  try {
+    const migrated = await migrateLegacyPromoData();
+    if (migrated) console.log('Migrated legacy Promotion/Relegation history into CFB 27 Utilities.');
+  } catch (error) {
+    console.warn('Legacy Promotion/Relegation history migration failed:', error);
+  }
+});
 
 function normalizeColor(value: unknown, fallback: string): string {
   const text = String(value ?? '').trim().replace(/^#/, '');
