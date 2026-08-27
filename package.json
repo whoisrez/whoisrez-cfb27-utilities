@@ -1,7 +1,7 @@
 {
   "name": "whoisrez-cfb27-utilities",
   "productName": "CFB 27 Utilities",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CFB 27 dynasty utilities with Team Needs and Promotion/Relegation tools",
   "main": ".vite/build/main.js",
   "private": true,
