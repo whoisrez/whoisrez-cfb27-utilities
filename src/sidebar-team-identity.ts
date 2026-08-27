@@ -61,7 +61,6 @@ async function renderTeam(teamName: string): Promise<void> {
   brand.innerHTML = `
     <div class="mark team-mark">${branding?.logoUrl ? `<img src="${esc(branding.logoUrl)}" alt="${esc(displayName)} logo">` : '27'}</div>
     <div class="brand-copy">
-      <span>USER TEAM</span>
       <strong>${esc(displayName)}</strong>
       <small>CFB 27 Utilities</small>
     </div>`;
