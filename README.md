@@ -4,7 +4,7 @@ A portable Windows dynasty companion for **EA Sports College Football 27** that 
 
 ## Download
 
-**Latest release:** [CFB 27 Utilities v0.1.0](https://github.com/whoisrez/whoisrez-cfb27-utilities/releases/latest)
+**Latest release:** [CFB 27 Utilities v0.1.1](https://github.com/whoisrez/whoisrez-cfb27-utilities/releases/latest)
 
 Download **`CFB-27-Utilities-Portable.zip`**, extract it to any writable folder, and run **`CFB 27 Utilities.exe`**.
 
