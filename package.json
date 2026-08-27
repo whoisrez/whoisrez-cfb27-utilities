@@ -6,7 +6,7 @@
   "main": ".vite/build/main.js",
   "private": true,
   "scripts": {
-    "prestart": "node scripts/generate-app-icon.cjs",
+    "prestart": "node scripts/migrate-legacy-data.cjs && node scripts/generate-app-icon.cjs",
     "start": "electron-forge start",
     "prepackage": "node scripts/generate-app-icon.cjs",
     "package": "electron-forge package",
