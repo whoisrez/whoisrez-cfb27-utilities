@@ -1,0 +1,63 @@
+.sidebar nav > button > span {
+  display: none;
+}
+
+.brand.has-team-identity {
+  align-items: center;
+}
+
+.brand-copy {
+  min-width: 0;
+}
+
+.brand.has-team-identity .mark {
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--team-primary, #31536d) 72%, #29333b);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--team-primary, #111b23) 24%, #101214), #080a0c 76%);
+}
+
+.brand.has-team-identity .team-mark {
+  width: 52px;
+  height: 52px;
+  flex-basis: 52px;
+  padding: 5px;
+  clip-path: none;
+}
+
+.team-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.brand.has-team-identity span {
+  color: color-mix(in srgb, var(--team-secondary, #7c8994) 70%, #aeb7bd);
+}
+
+.brand.has-team-identity strong {
+  max-width: 124px;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #f7f8f9;
+  font-size: 16px;
+  line-height: 1.02;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand.has-team-identity small {
+  display: block;
+  margin-top: 5px;
+  color: #58646c;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.sidebar nav > button {
+  gap: 7px;
+  padding-left: 13px;
+}
