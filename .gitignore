@@ -1,0 +1,6 @@
+node_modules/
+out/
+.vite/
+data/
+*.log
+src/renderer.generated.ts

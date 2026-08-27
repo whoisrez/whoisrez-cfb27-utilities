@@ -1,0 +1,232 @@
+body.team-needs-active .workspace {
+  padding: 18px 20px 28px;
+}
+
+body.team-needs-active .topbar {
+  margin-bottom: 12px;
+}
+
+body.team-needs-active #content {
+  overflow: visible;
+}
+
+body.team-needs-active .team-needs-view {
+  width: 100%;
+  max-width: none;
+}
+
+body.team-needs-active .tn-summary {
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+body.team-needs-active .tn-summary article {
+  min-height: 86px;
+  padding: 14px 16px 12px;
+}
+
+body.team-needs-active .tn-summary span {
+  font-size: 9px;
+}
+
+body.team-needs-active .tn-summary strong {
+  margin-top: 7px;
+  font-size: 27px;
+}
+
+body.team-needs-active .tn-summary small {
+  margin-top: 6px;
+  font-size: 10px;
+}
+
+body.team-needs-active .tn-panel {
+  overflow: visible;
+  clip-path: none;
+  border-color: #2b2b2b;
+}
+
+body.team-needs-active .tn-panel-head {
+  min-height: 58px;
+  padding: 11px 15px 10px;
+}
+
+body.team-needs-active .tn-panel-head h2 {
+  font-size: 20px;
+}
+
+/* Team Needs uses the page scrollbar. Never create a second scrollbar inside the roster. */
+body.team-needs-active .tn-table-wrap {
+  max-height: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+  scrollbar-width: auto;
+}
+
+body.team-needs-active .needs-table {
+  min-width: 1040px;
+  table-layout: fixed;
+}
+
+body.team-needs-active .needs-table th,
+body.team-needs-active .needs-table td {
+  height: 47px;
+  padding: 10px 12px;
+  font-size: 11px;
+}
+
+body.team-needs-active .needs-table th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  height: 35px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  background: #121212;
+  font-size: 8px;
+}
+
+body.team-needs-active .needs-table th:first-child,
+body.team-needs-active .needs-table td:first-child {
+  position: static;
+  width: 190px;
+  min-width: 190px;
+  padding-left: 16px;
+}
+
+body.team-needs-active .needs-table th:first-child {
+  position: sticky;
+  left: auto;
+  top: 0;
+  z-index: 6;
+}
+
+body.team-needs-active .needs-table tbody td:first-child {
+  box-shadow: 1px 0 0 #232323;
+}
+
+body.team-needs-active .position-name strong {
+  font-size: 12px;
+}
+
+body.team-needs-active .position-name small {
+  margin-top: 3px;
+  font-size: 8px;
+}
+
+body.team-needs-active .count {
+  font-size: 13px;
+}
+
+body.team-needs-active .manual-wrap {
+  gap: 3px;
+}
+
+body.team-needs-active .tn-manual {
+  width: 64px;
+  height: 31px;
+  padding: 4px 6px;
+  font-size: 11px;
+}
+
+body.team-needs-active .manual-wrap small {
+  font-size: 8px;
+}
+
+body.team-needs-active .target {
+  min-width: 30px;
+  height: 27px;
+}
+
+body.team-needs-active .need-result strong {
+  min-width: 31px;
+  height: 26px;
+  font-size: 15px;
+}
+
+body.team-needs-active .need-result small {
+  margin-top: 3px;
+  font-size: 8px;
+}
+
+body.team-needs-active .roster-section-divider td {
+  height: 27px !important;
+  padding: 6px 15px !important;
+  font-size: 8px !important;
+}
+
+/* The standalone app shows Total only at the end of the roster; don't float it over rows. */
+body.team-needs-active .total-row {
+  position: static !important;
+  box-shadow: 0 -1px 0 #3a3a3a !important;
+}
+
+body.team-needs-active .total-row td {
+  height: 40px;
+}
+
+body.team-needs-active .tn-footnote {
+  margin-top: 12px;
+  padding-bottom: 4px;
+  font-size: 9px;
+}
+
+body.team-needs-active .needs-only-toggle {
+  height: 32px;
+}
+
+/* Keep the sidebar compact while allowing the roster page to use the remaining width. */
+body.team-needs-active .app-shell {
+  grid-template-columns: 198px minmax(0, 1fr);
+}
+
+body.team-needs-active .sidebar {
+  width: 198px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* Opaque shell-level loading cover prevents the Promotion page from flashing during shared import. */
+.shared-import-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  background: #060606;
+}
+
+.shared-import-mask > div {
+  min-width: 310px;
+  padding: 24px 28px;
+  border: 1px solid #2b2b2b;
+  border-left: 3px solid #d9b15c;
+  background: #0b0b0b;
+  text-align: center;
+}
+
+.shared-import-mask strong {
+  display: block;
+  color: #f4f4f2;
+  font-size: 17px;
+}
+
+.shared-import-mask span {
+  display: block;
+  margin-top: 7px;
+  color: #777773;
+  font-size: 10px;
+}
+
+body.shared-import-running .workspace {
+  position: relative;
+}
+
+@media (max-width: 1250px) {
+  body.team-needs-active .app-shell {
+    grid-template-columns: 185px minmax(0, 1fr);
+  }
+  body.team-needs-active .sidebar { width: 185px; }
+  body.team-needs-active .needs-table { min-width: 1000px; }
+}

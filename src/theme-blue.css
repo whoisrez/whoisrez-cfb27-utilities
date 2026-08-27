@@ -1,0 +1,42 @@
+:root{
+  --gold:#3f6f9b !important;
+  --gold2:#8db9df !important;
+  --maroon:#18324a !important;
+  --maroon2:#2d5d86 !important;
+}
+body{
+  background:
+    radial-gradient(circle at 84% 4%,rgba(24,50,74,.22),transparent 26%),
+    radial-gradient(circle at 14% 98%,rgba(63,111,155,.08),transparent 30%),
+    linear-gradient(180deg,#080a0c,#050607) !important;
+}
+body::before{
+  background:linear-gradient(90deg,transparent,rgba(63,111,155,.82),rgba(24,50,74,.82),transparent) !important;
+}
+.mark{
+  border-color:#2f5272 !important;
+  background:linear-gradient(145deg,#111b24,#090b0d 72%) !important;
+}
+nav button.active{
+  border-color:#263746 !important;
+  border-left-color:var(--gold) !important;
+  background:linear-gradient(90deg,rgba(63,111,155,.16),#0d0f11 65%) !important;
+}
+.primary{
+  border-color:#4f7da6 !important;
+  background:linear-gradient(180deg,#6f9fc8,#3b6d98) !important;
+  color:#f4f8fc !important;
+}
+.primary:hover{
+  background:linear-gradient(180deg,#7cadd4,#477aa6) !important;
+}
+.status{border-left-color:#3b6d98 !important}
+.summary article:nth-child(2){background:linear-gradient(145deg,rgba(24,50,74,.34),#0a0a0a 72%) !important}
+.summary article:nth-child(4){background:linear-gradient(145deg,rgba(63,111,155,.12),#0a0a0a 72%) !important}
+.recommendation{background:rgba(24,50,74,.16) !important}
+.recommendation>span{color:#739ec2 !important}
+.history-move em{
+  border-color:#315777 !important;
+  background:#0d151d !important;
+}
+.badge.open{border-color:#315777 !important}

@@ -1,0 +1,7 @@
+.history-season-actions{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.history-toggle{height:42px;min-width:78px;font-size:11px;padding:0 14px}
+.history-season.history-collapsed .history-season-head{border-bottom:0;min-height:66px}
+.history-season.history-collapsed{background:#0b0b0b}
+.history-season.history-collapsed .history-season-summary span{color:#666}
+.history-season.history-collapsed .history-pair-grid,.history-pair-grid[hidden]{display:none!important}
+@media(max-width:1220px){.history-season-actions{grid-column:2;grid-row:1;align-self:center}.history-toggle{min-width:72px}}
