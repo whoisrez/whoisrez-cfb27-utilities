@@ -1,0 +1,90 @@
+name: Publish Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+      - CHANGELOG.md
+      - .github/workflows/release.yml
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.repository == 'whoisrez/whoisrez-cfb27-utilities'
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run verify
+
+      - name: Build portable ZIP
+        run: npm run make
+
+      - name: Resolve release files
+        id: release
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          $tag = "v$version"
+          $portable = Resolve-Path "out\make\portable\CFB-27-Utilities-Portable.zip"
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "portable=$portable" >> $env:GITHUB_OUTPUT
+
+      - name: Publish portable-only GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.release.outputs.tag }}"
+          $portable = "${{ steps.release.outputs.portable }}"
+          $notesPath = Join-Path $env:RUNNER_TEMP "release-notes.md"
+          $version = $tag.TrimStart('v')
+          $changelog = Get-Content -Path "CHANGELOG.md" -Raw
+          $escapedVersion = [regex]::Escape("v$version")
+          $pattern = "(?ms)^##\s+$escapedVersion\s*\r?\n(.*?)(?=^##\s+v|\z)"
+          $match = [regex]::Match($changelog, $pattern)
+          if (-not $match.Success) { throw "CHANGELOG.md does not contain a section for $tag." }
+          $releaseBody = $match.Groups[1].Value.Trim()
+          $notes = @(
+            '## CFB 27 Utilities',
+            '',
+            'Portable Windows dynasty companion for EA Sports College Football 27.',
+            '',
+            "## $tag",
+            '',
+            $releaseBody,
+            '',
+            '### Download',
+            '- `CFB-27-Utilities-Portable.zip` — extract the folder to any writable location and run `CFB 27 Utilities.exe` from inside it.',
+            '',
+            'Persistent Promotion/Relegation history and app data are stored in the `data` folder beside the executable so the portable folder can be moved together.',
+            'Windows may show a SmartScreen warning because this release is not code-signed.'
+          )
+          Set-Content -Path $notesPath -Value $notes -Encoding utf8
+
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag $portable --repo $env:GITHUB_REPOSITORY --clobber
+            if ($LASTEXITCODE -ne 0) { throw 'Failed to upload portable ZIP.' }
+            gh release edit $tag --repo $env:GITHUB_REPOSITORY --title "CFB 27 Utilities $tag" --notes-file $notesPath --latest
+            if ($LASTEXITCODE -ne 0) { throw 'Failed to update GitHub release.' }
+          } else {
+            gh release create $tag $portable --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "CFB 27 Utilities $tag" --notes-file $notesPath --latest
+            if ($LASTEXITCODE -ne 0) { throw 'Failed to create GitHub release.' }
+          }
