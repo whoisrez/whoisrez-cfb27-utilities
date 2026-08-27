@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.1
+
+- Replaces the previous Windows app icon with the new CFB 27 Utilities question-mark football badge.
+- Adds the integrated `27` mark and `by whoisrez` branding to the app icon.
+- Uses the new icon for both development windows and packaged portable builds.
+
 ## v0.1.0
 
 - First public release of CFB 27 Utilities.
