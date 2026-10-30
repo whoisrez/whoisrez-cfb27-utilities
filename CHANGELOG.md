@@ -1,12 +1,19 @@
 # Changelog
 
-## Unreleased
+## v0.3.0
 
-- Rebuilt the interface code as one app instead of a base page plus a dozen scripts that re-drew it after loading. Pages now appear complete right away, without the brief flash of older text after importing or syncing.
-- Error messages for a failed import, sync, or season close now stay visible instead of being overwritten.
-- Removed the unfinished save-writer and "Compare Manual Move" debug tools.
-- Organized source into `main/`, `renderer/`, `shared/`, and `styles/`; removed old build scripts and unused files.
-- Added a CI check (typecheck + package build) for pull requests.
+- **Depth Chart now covers offense and special teams**, with Defense / Offense / Special Teams tabs.
+  - Offense: position-locked QB, HB, FB, WR, TE, LT, LG, C, RG, RT, plus 3DRB (receiving back), PWHB (power back), SLWR (slot receiver) and GAD (gadget).
+  - Special teams: K and P back each other up; KOS by kick power; KR and PR from non-starters by return ability; LS is the best Long Snap rating among non-starters.
+  - Short position groups borrow a spare from the same unit first, then any unlisted player on that side of the ball.
+- Writing can include lists from all three tabs at once; each tab has Select / Skip all.
+- Depth Chart is rebuilt on the new app structure (same rules and save-copy safety as v0.2.0).
+- App cleanup:
+  - Rebuilt the interface code as one app instead of a base page plus a dozen scripts that re-drew it after loading. Pages now appear complete right away, without the brief flash of older text after importing or syncing.
+  - Error messages for a failed import, sync, or season close now stay visible instead of being overwritten.
+  - Removed the unfinished conference save-writer and "Compare Manual Move" debug tools.
+  - Organized source into `main/`, `renderer/`, `shared/`, and `styles/`; removed old build scripts and unused files.
+  - Added a CI check (typecheck + package build) for pull requests.
 
 ## v0.1.1
 

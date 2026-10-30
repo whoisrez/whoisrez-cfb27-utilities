@@ -30,6 +30,7 @@ const config: ForgeConfig = {
         { entry: 'src/preload.ts', config: 'vite.preload.config.ts', target: 'preload' },
         { entry: 'src/main/workers/save-reader-worker.ts', config: 'vite.worker.config.ts', target: 'preload' },
         { entry: 'src/main/workers/team-needs-worker.ts', config: 'vite.worker.config.ts', target: 'preload' },
+        { entry: 'src/main/workers/depth-chart-worker.ts', config: 'vite.worker.config.ts', target: 'preload' },
       ],
       renderer: [{ name: 'main_window', config: 'vite.renderer.config.ts' }],
     }),

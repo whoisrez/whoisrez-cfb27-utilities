@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { DepthChartApi } from './shared/depth-chart';
 import type { Movement, PromoApi, TeamNeedsApi } from './shared/types';
 
 const teamNeedsAPI: TeamNeedsApi = {
@@ -15,5 +16,11 @@ const promoAPI: PromoApi = {
   reopenSeason: (dynastyId, seasonYear) => ipcRenderer.invoke('promo:reopen-season', dynastyId, seasonYear),
 };
 
+const depthChartAPI: DepthChartApi = {
+  load: (teamIndex) => ipcRenderer.invoke('depth-chart:load', teamIndex ?? null),
+  write: (filePath, request) => ipcRenderer.invoke('depth-chart:write', filePath, request),
+};
+
 contextBridge.exposeInMainWorld('teamNeedsAPI', teamNeedsAPI);
+contextBridge.exposeInMainWorld('depthChartAPI', depthChartAPI);
 contextBridge.exposeInMainWorld('promoAPI', promoAPI);

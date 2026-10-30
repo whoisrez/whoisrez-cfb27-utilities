@@ -8,6 +8,8 @@ const SHELL = `
       <nav id="nav">
         <div class="combined-nav-label">RECRUITING</div>
         <button data-page="team-needs">Team Needs</button>
+        <div class="combined-nav-label roster-label">ROSTER</div>
+        <button data-page="depth-chart">Depth Chart</button>
         <div class="combined-nav-label season-label">OFFSEASON</div>
         <div class="offseason-module-header">Promotion / Relegation</div>
         <div class="combined-subnav open offseason-subnav">
@@ -19,7 +21,7 @@ const SHELL = `
           <button data-page="history">History</button>
         </div>
       </nav>
-      <div class="sidebar-note">READ-ONLY GAME ACCESS<br><small>The tracker never edits CFB 27 saves.</small></div>
+      <div class="sidebar-note">SAVE-SAFE<br><small>Only Depth Chart writes, and always to a new copy of your save.</small></div>
     </aside>
     <main class="workspace">
       <header class="topbar">
@@ -28,6 +30,7 @@ const SHELL = `
             <h1 id="pageTitle"></h1>
             <button id="syncBtn" class="secondary section-sync" type="button" disabled>Sync</button>
             <button id="teamNeedsSyncBtn" class="secondary section-sync" type="button" disabled hidden>Sync</button>
+            <button id="depthChartSyncBtn" class="secondary section-sync" type="button" disabled hidden>Sync</button>
           </div>
           <p id="pageSubtitle"></p>
         </div>
@@ -35,6 +38,7 @@ const SHELL = `
           <div class="team-needs-top-extras">
             <select id="teamNeedsTeamSelectTop" class="team-needs-top-select" aria-label="Team" hidden></select>
             <button id="teamNeedsResetBtnTop" class="secondary" type="button" hidden>Reset Manual Values</button>
+            <select id="depthChartTeamSelect" class="team-needs-top-select" aria-label="Depth chart team" hidden></select>
           </div>
           <button id="globalImportBtn" class="primary" type="button">Import Dynasty</button>
         </div>
@@ -60,6 +64,8 @@ export function mountShell(root: HTMLElement) {
     subtitle: find<HTMLElement>(root, '#pageSubtitle'),
     promoSync: find<HTMLButtonElement>(root, '#syncBtn'),
     teamNeedsSync: find<HTMLButtonElement>(root, '#teamNeedsSyncBtn'),
+    depthChartSync: find<HTMLButtonElement>(root, '#depthChartSyncBtn'),
+    depthChartTeamSelect: find<HTMLSelectElement>(root, '#depthChartTeamSelect'),
     teamSelect: find<HTMLSelectElement>(root, '#teamNeedsTeamSelectTop'),
     resetManual: find<HTMLButtonElement>(root, '#teamNeedsResetBtnTop'),
     importButton: find<HTMLButtonElement>(root, '#globalImportBtn'),

@@ -3,6 +3,7 @@ import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import type { DynastySnapshot, TeamNeedsDynasty } from '../shared/types';
+import { registerDepthChartIpc } from './depth-chart/ipc';
 import { cleanMovements, HistoryStoreFile } from './history-store';
 import { migrateLegacyPromoData } from './legacy-migration';
 import { runWorker } from './run-worker';
@@ -107,6 +108,8 @@ ipcMain.handle('team-needs:team-branding', async (_event, teamName: unknown) => 
   const name = String(teamName ?? '').trim();
   return name ? resolveTeamBranding(name) : null;
 });
+
+registerDepthChartIpc(activeSavePath);
 
 ipcMain.handle('promo:choose-and-load', chooseSave);
 ipcMain.handle('promo:sync-current-save', async () => loadSave(await activeSavePath()));

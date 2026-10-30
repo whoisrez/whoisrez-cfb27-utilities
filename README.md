@@ -1,10 +1,10 @@
 # CFB 27 Utilities
 
-A portable Windows dynasty companion for **EA Sports College Football 27** that combines roster planning and offseason conference management in one app.
+A portable Windows dynasty companion for **EA Sports College Football 27** that combines roster planning, depth charts, and offseason conference management in one app.
 
 ## Download
 
-**Latest release:** [CFB 27 Utilities v0.1.1](https://github.com/whoisrez/whoisrez-cfb27-utilities/releases/latest)
+**Latest release:** [CFB 27 Utilities v0.3.0](https://github.com/whoisrez/whoisrez-cfb27-utilities/releases/latest)
 
 Download **`CFB-27-Utilities-Portable.zip`**, extract it to any writable folder, and run **`CFB 27 Utilities.exe`**.
 
@@ -21,6 +21,16 @@ The portable build stores persistent tracker data in the **`data`** folder besid
 - Auto-reads committed/signed recruits from the user team's recruiting board.
 - Groups positions into the roster targets used by the Team Needs planner.
 - Keeps its own **weekly Sync** action so roster/recruiting data can be refreshed without running offseason logic.
+
+### Roster → Depth Chart
+
+- Builds the **defense, offense, and special teams** depth charts for the user-controlled team from the save's ratings, with a tab for each.
+- **Position-locked:** every base spot uses only players listed at that position (LEDG at LEDG, LG at LG, …), so blowout subs never pull a starter to another spot.
+- Overall sets the order; within 1 point, the ratings that matter for that spot break the tie. Short groups borrow a spare from the same unit who is on no other list.
+- Packages rank by what they're for: pass rush (RLE/RRE/RDT), run fit (NT), slot coverage (SLCB), receiving back (3DRB), power back (PWHB), slot receiver (SLWR), open-field (GAD).
+- Special teams: kickers and punters back each other up; returners and the long snapper come from non-starters first.
+- Shows current vs. recommended with the reason for every pick before anything is written, and lets you choose which lists to write.
+- **Write to New Save Copy** saves a versioned copy beside the original (`<save>-DC-v1`, `-v2`, …) and re-reads it to verify every spot. The original save is never modified.
 
 ### Offseason → Promotion / Relegation
 
@@ -40,16 +50,17 @@ The portable build stores persistent tracker data in the **`data`** folder besid
 
 ## Shared dynasty workflow
 
-The app uses **one shared dynasty import** for both modules.
+The app uses **one shared dynasty import** for every module.
 
 After a save is imported:
 
 - the sidebar shows the loaded user team's logo and name;
 - Team Needs reads that team's roster and recruiting board;
+- Depth Chart reads the same save when you open it;
 - Promotion / Relegation reads the same dynasty save for offseason tracking;
 - each module can be synced independently when its data actually needs to be refreshed.
 
-The tracker is **read-only by default** and does not automatically overwrite CFB 27 saves.
+The app never overwrites a CFB 27 save on its own. Depth Chart is the only writer, and it writes to a **new copy** unless you deliberately pick the original in the save dialog (which is then backed up first).
 
 ## Development
 
@@ -66,9 +77,9 @@ Development runs use Electron's normal AppData storage. Packaged portable releas
 
 ```text
 src/
-  main/        Electron main process: window, IPC, history file, save readers (run in worker threads)
-  preload.ts   Typed bridge exposed to the window as promoAPI / teamNeedsAPI
-  renderer/    The interface: app.ts (state + events), promotion/ (rules + pages), team-needs/
+  main/        Electron main process: window, IPC, history file, save readers and the depth chart writer (worker threads)
+  preload.ts   Typed bridge exposed to the window as promoAPI / teamNeedsAPI / depthChartAPI
+  renderer/    The interface: app.ts (state + events), promotion/ (rules + pages), team-needs/, depth-chart/
   shared/      Types and roster math used by both sides
   styles/      Stylesheets, loaded in numbered order from styles/index.css
 ```

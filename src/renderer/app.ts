@@ -1,8 +1,13 @@
 // App state and event handling. All rendering goes through render(); pages are
-// plain HTML builders in ./promotion/pages.ts and ./team-needs/page.ts.
+// plain HTML builders in ./promotion/pages.ts, ./team-needs/page.ts and ./depth-chart/page.ts.
+import type { DcSide, DepthChartApi, DepthChartLoad } from '../shared/depth-chart';
 import type { DynastySnapshot, PromoApi, StoredSeason, TeamNeedsApi, TeamNeedsDynasty } from '../shared/types';
 import { createBrand } from './brand';
-import { errorMessage, esc } from './html';
+import {
+  defaultInclude, DEPTH_CHART_SUBTITLE, DEPTH_CHART_TITLE, depthChartTeamCount, depthChartTeamOptions, renderDepthChart,
+  type DepthChartView,
+} from './depth-chart/page';
+import { errorMessage, esc, plural, saveFileName } from './html';
 import {
   promoHeader, promoStatus, renderAlignment, renderConferenceHistory, renderConferences, renderDashboard,
   renderHistory, renderMovement, renderTeamHistory, renderTeams, type PromoPage,
@@ -15,9 +20,11 @@ import { mountShell } from './shell';
 import { chooseTeam, readManualRow, renderTeamNeeds, selectableTeams, teamOptions, TEAM_NEEDS_SUBTITLE, TEAM_NEEDS_TITLE } from './team-needs/page';
 import { clearManualValues, loadNeedsOnly, rememberTeamIndex, saveManualValues, saveNeedsOnly } from './team-needs/storage';
 
-type Page = 'team-needs' | PromoPage;
+type Page = 'team-needs' | 'depth-chart' | PromoPage;
 
-export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: TeamNeedsApi): void {
+const DC_TEAM_KEY = 'cfb27-depth-chart-team-index';
+
+export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: TeamNeedsApi, depthChartApi: DepthChartApi): void {
   const ui = mountShell(root);
   const brand = createBrand(ui.brand, teamNeedsApi);
 
@@ -36,6 +43,13 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
     teamNeeds: null as TeamNeedsDynasty | null,
     teamIndex: null as number | null,
     needsOnly: loadNeedsOnly(),
+    // Depth Chart
+    depthChart: null as DepthChartLoad | null,
+    depthChartStale: true,
+    dcSide: 'defense' as DcSide,
+    dcInclude: new Set<string>(),
+    dcBusy: false,
+    dcMessage: null as DepthChartView['message'],
     // One-off message (errors) shown in the status bar until the next render.
     statusMessage: null as string | null,
     importing: false,
@@ -117,8 +131,16 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
 
   function renderTopbar(): void {
     const onTeamNeeds = state.page === 'team-needs';
+    const onDepthChart = state.page === 'depth-chart';
     document.body.classList.toggle('team-needs-active', onTeamNeeds);
-    ui.promoSync.hidden = onTeamNeeds;
+    document.body.classList.toggle('depth-chart-active', onDepthChart);
+    ui.depthChartSync.hidden = !onDepthChart;
+    ui.depthChartSync.disabled = state.dcBusy || state.importing || !state.depthChart;
+    ui.depthChartSync.textContent = state.dcBusy ? 'Reading…' : 'Sync';
+    const showDcPicker = onDepthChart && depthChartTeamCount(state.depthChart) > 1;
+    ui.depthChartTeamSelect.hidden = !showDcPicker;
+    if (showDcPicker) ui.depthChartTeamSelect.innerHTML = depthChartTeamOptions(state.depthChart);
+    ui.promoSync.hidden = onTeamNeeds || onDepthChart;
     ui.promoSync.disabled = !state.promo || state.promoSyncing || state.importing;
     ui.promoSync.textContent = state.promoSyncing ? 'Syncing…' : 'Sync';
     ui.teamNeedsSync.hidden = !onTeamNeeds;
@@ -165,7 +187,14 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
   function render(): void {
     renderNav();
     renderTopbar();
-    if (state.page === 'team-needs') {
+    if (state.page === 'depth-chart') {
+      renderHeader(DEPTH_CHART_TITLE, DEPTH_CHART_SUBTITLE);
+      const [status, content] = renderDepthChart({
+        data: state.depthChart, side: state.dcSide, include: state.dcInclude, busy: state.dcBusy, message: state.dcMessage,
+      });
+      ui.status.innerHTML = state.statusMessage ?? status;
+      ui.content.innerHTML = content;
+    } else if (state.page === 'team-needs') {
       renderHeader(TEAM_NEEDS_TITLE, TEAM_NEEDS_SUBTITLE);
       const [status, content] = renderTeamNeeds(state.teamNeeds, currentTeam(), state.needsOnly);
       ui.status.innerHTML = state.statusMessage ?? status;
@@ -185,9 +214,65 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
   function go(page: Page): void {
     state.page = page;
     render();
+    if (page === 'depth-chart' && state.depthChartStale && state.promo && !state.dcBusy) void loadDepthChart();
   }
 
   // ---- Actions --------------------------------------------------------------------------------
+
+  // ---- Depth Chart ------------------------------------------------------------------------------
+
+  function rememberedDepthChartTeam(): number | null {
+    try {
+      const raw = localStorage.getItem(DC_TEAM_KEY);
+      return raw == null ? null : Number(raw);
+    } catch { return null; }
+  }
+
+  async function loadDepthChart(teamIndex: number | null = state.depthChart?.teamIndex ?? rememberedDepthChartTeam()): Promise<void> {
+    state.dcBusy = true;
+    state.dcMessage = { tone: 'info', html: 'Reading the depth chart from your save…' };
+    render();
+    try {
+      const loaded = await depthChartApi.load(teamIndex);
+      state.depthChart = loaded;
+      state.depthChartStale = false;
+      state.dcInclude = defaultInclude(loaded);
+      state.dcMessage = null;
+      try { localStorage.setItem(DC_TEAM_KEY, String(loaded.teamIndex)); } catch { /* optional */ }
+    } catch (error) {
+      state.dcMessage = { tone: 'error', html: `<strong>Could not read the depth chart.</strong> ${esc(errorMessage(error))}` };
+    } finally {
+      state.dcBusy = false;
+      if (state.page === 'depth-chart') render();
+    }
+  }
+
+  async function writeDepthChart(): Promise<void> {
+    const data = state.depthChart;
+    if (!data || state.dcBusy) return;
+    const slots = data.plan.slots.filter((slot) => state.dcInclude.has(slot.key));
+    if (!slots.length) return;
+    state.dcBusy = true;
+    state.dcMessage = { tone: 'info', html: 'Writing and verifying the new save copy…' };
+    render();
+    try {
+      const result = await depthChartApi.write(data.filePath, {
+        teamIndex: data.teamIndex,
+        slots: slots.map((slot) => ({ key: slot.key, rows: slot.recommended.map((entry) => entry.row) })),
+      });
+      state.dcMessage = result
+        ? {
+          tone: 'success',
+          html: `<strong>Saved ${esc(saveFileName(result.outputPath))}.</strong> ${result.verifiedSlots} list${plural(result.verifiedSlots)} written and verified (${result.writtenEntries} players).${result.backupPath ? ` The file it replaced was backed up to ${esc(result.backupPath)}.` : ''} Load this copy in CFB 27 to use the new chart.`,
+        }
+        : { tone: 'info', html: 'Write cancelled. Nothing was saved.' };
+    } catch (error) {
+      state.dcMessage = { tone: 'error', html: `<strong>Write failed.</strong> ${esc(errorMessage(error)).replaceAll('\n', '<br>')}` };
+    } finally {
+      state.dcBusy = false;
+      render();
+    }
+  }
 
   async function importDynasty(): Promise<void> {
     if (state.importing) return;
@@ -199,7 +284,8 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
       const loaded = await promoApi.chooseAndLoad();
       if (!loaded) return;
       await setPromoData(loaded);
-      if (!fromTeamNeeds) state.page = 'movement';
+      state.depthChartStale = true;
+      if (!fromTeamNeeds && state.page !== 'depth-chart') state.page = 'movement';
       try {
         await loadTeamNeeds();
       } catch (error) {
@@ -212,6 +298,7 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
       mask?.remove();
       document.body.classList.remove('shared-import-running');
       render();
+      if (state.page === 'depth-chart' && state.depthChartStale && state.promo) void loadDepthChart();
     }
   }
 
@@ -231,6 +318,7 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
     try {
       const loaded = await promoApi.syncCurrentSave();
       await setPromoData(loaded);
+      state.depthChartStale = true;
     } catch (error) {
       showStatus('Sync failed.', error, 'The last imported data is still shown.');
     } finally {
@@ -330,6 +418,11 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
   });
 
   ui.importButton.addEventListener('click', () => void importDynasty());
+  ui.depthChartSync.addEventListener('click', () => void loadDepthChart());
+  ui.depthChartTeamSelect.addEventListener('change', () => {
+    const parsed = Number(ui.depthChartTeamSelect.value);
+    if (Number.isFinite(parsed)) void loadDepthChart(parsed);
+  });
   ui.promoSync.addEventListener('click', () => void syncPromo());
   ui.teamNeedsSync.addEventListener('click', () => void syncTeamNeeds());
   ui.resetManual.addEventListener('click', () => {
@@ -347,6 +440,14 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
 
   ui.content.addEventListener('change', (event) => {
     const target = event.target as HTMLElement;
+    if (state.page === 'depth-chart') {
+      const box = target.closest<HTMLInputElement>('input[data-dc-include]');
+      if (box?.dataset.dcInclude) {
+        if (box.checked) state.dcInclude.add(box.dataset.dcInclude); else state.dcInclude.delete(box.dataset.dcInclude);
+        render();
+      }
+      return;
+    }
     if (state.page === 'team-needs') {
       const row = target.closest<HTMLTableRowElement>('tr[data-target-group]');
       const edit = target.matches('input[data-manual-field]') && row ? readManualRow(row) : null;
@@ -371,6 +472,22 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
   ui.content.addEventListener('click', (event) => {
     const target = event.target as HTMLElement;
     const closest = (selector: string) => target.closest<HTMLElement>(selector);
+    if (state.page === 'depth-chart') {
+      const tab = closest('[data-dc-side]');
+      const toggle = closest('[data-dc-toggle-side]');
+      if (tab) {
+        state.dcSide = tab.dataset.dcSide as DcSide;
+        render();
+      } else if (toggle && state.depthChart) {
+        const changed = state.depthChart.plan.slots.filter((slot) => slot.side === toggle.dataset.dcToggleSide && slot.changed);
+        const allOn = changed.every((slot) => state.dcInclude.has(slot.key));
+        for (const slot of changed) if (allOn) state.dcInclude.delete(slot.key); else state.dcInclude.add(slot.key);
+        render();
+      } else if (closest('#dcWriteBtn')) {
+        void writeDepthChart();
+      }
+      return;
+    }
     if (closest('#needsOnlyToggle')) {
       state.needsOnly = !state.needsOnly;
       saveNeedsOnly(state.needsOnly);
