@@ -7,10 +7,12 @@ export const DEPTH_CHART_TITLE = 'Depth Chart';
 export const DEPTH_CHART_SUBTITLE = 'Position-locked depth chart builder.';
 
 export const SIDES: Array<{ id: DcSide; label: string }> = [
-  { id: 'defense', label: 'Defense' },
   { id: 'offense', label: 'Offense' },
+  { id: 'defense', label: 'Defense' },
   { id: 'special', label: 'Special Teams' },
 ];
+
+const COMMON_RULES = 'Your current chart wins ties: a spot only changes when the player there now is out of position, starts somewhere else, or the new pick is clearly better (more than 1 overall, or clearly better ratings for that spot). Injured players keep their spot and the next healthy player plays until they are back.';
 
 export type DepthChartView = {
   data: DepthChartLoad | null;
@@ -33,22 +35,38 @@ function prettyArchetype(value: string): string {
   return value.replace(/^[A-Z]+_/, '').replace(/([a-z])([A-Z])/g, '$1 $2');
 }
 
-function chip(player: DcPlayerView | undefined, index: number, slot: DcSlotPlan, note?: string): string {
+/** Indexes that are on the field: the first `starters` healthy players (an injured starter's backup plays). */
+function playingIndexes(rows: number[], players: Map<number, DcPlayerView>, starters: number): Set<number> {
+  const playing = new Set<number>();
+  rows.forEach((row, index) => {
+    if (playing.size < starters && !players.get(row)?.injury) playing.add(index);
+  });
+  return playing;
+}
+
+function chip(player: DcPlayerView | undefined, index: number, slot: DcSlotPlan, playing: Set<number>, note?: string): string {
   if (!player) return `<span class="dc-chip"><b>${index + 1}</b>Unknown player</span>`;
   const outOfPosition = slot.positions.length > 0 && !slot.positions.includes(player.position);
   // In the recommended column a cross-position pick is deliberate (fill-in, import, specialist backup).
   const positionClass = outOfPosition ? (note ? ' borrowed' : ' off-position') : '';
-  const starter = index < slot.starters ? ' starter' : '';
+  const starter = playing.has(index) ? ' starter' : '';
+  const injured = player.injury ? ' injured' : '';
   const position = DISPLAY_POSITION[player.position] ?? player.position;
   const tip = [`${player.name} · ${position} · ${player.ovr} OVR`, prettyArchetype(player.archetype), player.dev ? `${player.dev.replace(/^College_/, '')} dev` : '', note ?? '']
     .filter(Boolean).join('\n');
-  return `<span class="dc-chip${starter}${positionClass}" title="${esc(tip)}"><b>${index + 1}</b><span class="dc-name">${esc(player.name)}</span><em>${esc(position)} ${player.ovr}</em></span>`;
+  const outTag = player.injury ? '<i class="dc-out">OUT</i>' : '';
+  return `<span class="dc-chip${starter}${positionClass}${injured}" title="${esc(tip)}"><b>${index + 1}</b><span class="dc-name">${esc(player.name)}</span><em>${esc(position)} ${player.ovr}</em>${outTag}</span>`;
 }
 
 function slotRow(view: DepthChartView, players: Map<number, DcPlayerView>, slot: DcSlotPlan): string {
-  const current = slot.current.map((row, index) => chip(players.get(row), index, slot)).join('');
-  const next = slot.recommended.map((entry, index) => chip(players.get(entry.row), index, slot, entry.note)).join('');
-  const notes = slot.recommended.map((entry, index) => `<li><b>${index + 1}. ${esc(players.get(entry.row)?.name ?? 'Unknown')}</b> ${esc(entry.note)}</li>`).join('');
+  const nowPlaying = playingIndexes(slot.current, players, slot.starters);
+  const nextPlaying = playingIndexes(slot.recommended.map((entry) => entry.row), players, slot.starters);
+  const current = slot.current.map((row, index) => chip(players.get(row), index, slot, nowPlaying)).join('');
+  const next = slot.recommended.map((entry, index) => chip(players.get(entry.row), index, slot, nextPlaying, entry.note)).join('');
+  const notes = slot.recommended.map((entry, index) => {
+    const versus = entry.versus ? `<span class="dc-versus">${esc(entry.versus)}</span>` : '';
+    return `<li${entry.versus ? ' class="dc-changed-spot"' : ''}><b>${index + 1}. ${esc(players.get(entry.row)?.name ?? 'Unknown')}</b> ${esc(entry.note)}${versus}</li>`;
+  }).join('');
   const checked = view.include.has(slot.key);
   const write = slot.changed
     ? `<label class="dc-check"><input type="checkbox" data-dc-include="${esc(slot.key)}"${checked ? ' checked' : ''}${view.busy ? ' disabled' : ''}><span>${checked ? 'Write' : 'Skip'}</span></label>`
@@ -56,7 +74,7 @@ function slotRow(view: DepthChartView, players: Map<number, DcPlayerView>, slot:
   return `<tr class="${slot.changed ? 'changed' : 'unchanged'}">
     <td><div class="dc-slot"><strong>${esc(slot.label)}</strong><small>${esc(slot.help)} · ${slot.size} spot${plural(slot.size)}</small></div></td>
     <td><div class="dc-chips">${current || '<span class="dc-empty">Empty</span>'}</div></td>
-    <td><div class="dc-chips">${next}</div><details class="dc-why"><summary>Why</summary><ol>${notes}</ol></details></td>
+    <td><div class="dc-chips">${next}</div><details class="dc-why"${slot.changed ? ' open' : ''}><summary>${slot.changed ? 'Why, and why it beats your current chart' : 'Why'}</summary><ol>${notes}</ol></details></td>
     <td class="dc-include">${write}</td>
   </tr>`;
 }
@@ -64,7 +82,7 @@ function slotRow(view: DepthChartView, players: Map<number, DcPlayerView>, slot:
 function table(view: DepthChartView, players: Map<number, DcPlayerView>, title: string, slots: DcSlotPlan[], legend: boolean): string {
   if (!slots.length) return '';
   const legendHtml = legend
-    ? '<div class="dc-legend"><span class="dc-chip starter"><b>1</b>Starter</span><span class="dc-chip off-position"><b>1</b>Wrong position</span><span class="dc-chip borrowed"><b>1</b>Borrowed on purpose</span></div>'
+    ? '<div class="dc-legend"><span class="dc-chip starter"><b>1</b>Plays</span><span class="dc-chip off-position"><b>1</b>Wrong position</span><span class="dc-chip borrowed"><b>1</b>Borrowed on purpose</span><span class="dc-chip injured"><b>1</b>Injured<i class="dc-out">OUT</i></span></div>'
     : '';
   return `<section class="dc-panel">
     <div class="dc-panel-head"><h2>${esc(title)}</h2>${legendHtml}</div>
@@ -107,7 +125,8 @@ export function renderDepthChart(view: DepthChartView): [status: string, content
   const sideLabel = SIDES.find((side) => side.id === view.side)!.label;
   const allSelected = slots.filter((slot) => slot.changed).every((slot) => view.include.has(slot.key));
 
-  const status = `<span><strong>${esc(data.teamName)} loaded.</strong> ${data.players.length} players read from ${esc(saveFileName(data.filePath))}.</span><span>Writes go to a new copy · original save untouched</span>`;
+  const injured = data.players.filter((player) => player.injury).length;
+  const status = `<span><strong>${esc(data.teamName)} loaded.</strong> ${data.players.length} players read from ${esc(saveFileName(data.filePath))}${injured ? ` · ${injured} injured (they keep their spots; the next healthy player plays)` : ''}.</span><span>Writes go to a new copy · original save untouched</span>`;
   const content = `<div class="depth-chart-view">
     ${banner}
     <nav class="dc-tabs" aria-label="Depth chart side">${tabs}</nav>
@@ -126,7 +145,7 @@ export function renderDepthChart(view: DepthChartView): [status: string, content
         <button id="dcWriteBtn" class="primary" type="button"${view.busy || !selectedAll.length ? ' disabled' : ''}>${view.busy ? 'Working…' : 'Write to New Save Copy'}</button>
       </div>
     </section>
-    <p class="dc-rules"><b>How ${esc(sideLabel.toLowerCase())} is built:</b> ${esc(RULES[view.side])} Hover a player or open “Why” for the reason behind each spot.</p>
+    <p class="dc-rules"><b>How ${esc(sideLabel.toLowerCase())} is built:</b> ${esc(RULES[view.side])} ${esc(COMMON_RULES)} Hover a player or open “Why” for the reason behind each spot.</p>
   </div>`;
   return [status, content];
 }

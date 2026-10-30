@@ -46,7 +46,7 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
     // Depth Chart
     depthChart: null as DepthChartLoad | null,
     depthChartStale: true,
-    dcSide: 'defense' as DcSide,
+    dcSide: 'offense' as DcSide,
     dcInclude: new Set<string>(),
     dcBusy: false,
     dcMessage: null as DepthChartView['message'],

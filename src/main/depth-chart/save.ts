@@ -8,7 +8,7 @@
 // Only existing spots are rewritten. Arrays are never resized.
 
 import Franchise from 'madden-franchise';
-import type { DcPlayerView, DcTeamOption, DepthChartLoad, DepthChartWriteRequest } from '../../shared/depth-chart';
+import type { DcInjury, DcPlayerView, DcTeamOption, DepthChartLoad, DepthChartWriteRequest } from '../../shared/depth-chart';
 import { DISPLAY_POSITION } from '../../shared/depth-chart';
 import { ALL_SLOT_KEYS, buildDepthChart } from './rules';
 
@@ -147,6 +147,14 @@ async function readDepthChartArrays(ctx: Context, team: RecordLike): Promise<Map
   return arrays;
 }
 
+function readInjury(record: RecordLike): DcInjury | null {
+  const status = str(record, 'InjuryStatus');
+  const reserve = /^true$/i.test(str(record, 'IsInjuredReserve'));
+  if ((!status || /^uninjured$/i.test(status)) && !reserve) return null;
+  const weeks = Math.max(0, num(record, 'MaxInjuryDuration'), num(record, 'MinInjuryDuration'), num(record, 'TotalInjuryDuration'));
+  return { status, type: str(record, 'InjuryType'), weeks, reserve };
+}
+
 function toPlayer(record: RecordLike, row: number): DcPlayerView {
   const position = str(record, 'Position');
   const ratings: Record<string, number> = {};
@@ -163,6 +171,7 @@ function toPlayer(record: RecordLike, row: number): DcPlayerView {
     dev: str(record, 'TraitDevelopment'),
     weight: num(record, 'Weight') + 160,
     ratings,
+    injury: readInjury(record),
   };
 }
 

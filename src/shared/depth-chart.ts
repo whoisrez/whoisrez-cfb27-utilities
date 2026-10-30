@@ -1,8 +1,11 @@
 // Types shared by the depth chart reader/writer (main) and the Depth Chart page (renderer).
 
-export type DcSide = 'defense' | 'offense' | 'special';
+export type DcSide = 'offense' | 'defense' | 'special';
 
 export type DcRatings = Record<string, number>;
+
+/** Injury read from the save. Injured players keep their spot; the next healthy player starts. */
+export type DcInjury = { status: string; type: string; weeks: number; reserve: boolean };
 
 export type DcPlayer = {
   row: number;
@@ -15,11 +18,20 @@ export type DcPlayer = {
   dev: string;
   weight: number;
   ratings: DcRatings;
+  injury: DcInjury | null;
 };
 
 export type DcPlayerView = DcPlayer & { displayPosition: string };
 
-export type DcEntry = { row: number; note: string };
+export type DcEntry = {
+  row: number;
+  /** Why this player is in this spot. */
+  note: string;
+  /** Why this beats what the current chart has here (only when the spot changes). */
+  versus?: string;
+  /** True when the current chart's choice was kept because the alternative was not clearly better. */
+  kept?: boolean;
+};
 
 export type DcSlotPlan = {
   key: string;

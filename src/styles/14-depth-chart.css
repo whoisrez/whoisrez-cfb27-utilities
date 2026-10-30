@@ -120,11 +120,17 @@ body.depth-chart-active #pageTitle { margin: 0; font-size: 29px; line-height: 1;
 .dc-legend .dc-chip { height: 24px; font-size: 11px; }
 .dc-empty { color: #6d6d69; font-size: 12px; }
 
+.dc-table td, .dc-why, .dc-why ol, .dc-why li { text-align: left; }
+.dc-table td.dc-include { text-align: center; }
 .dc-why { margin-top: 6px; }
 .dc-why summary { width: max-content; color: #6fa8dc; font-size: 11px; font-weight: 800; cursor: pointer; }
 .dc-why ol { margin: 6px 0 2px; padding-left: 0; list-style: none; color: #a7a7a3; font-size: 12px; line-height: 1.45; }
 .dc-why li { margin-bottom: 3px; }
 .dc-why li b { color: #e6e6e2; }
+.dc-versus { display: block; margin: 2px 0 2px 12px; padding-left: 8px; border-left: 2px solid #3f8fdb; color: #9cc3e6; }
+.dc-chip.injured { opacity: .72; }
+.dc-chip.injured .dc-name { text-decoration: line-through; text-decoration-color: #c95a5a; }
+.dc-out { margin-left: -2px; padding: 1px 4px; background: #5a1f1f; color: #ffb3b3; font-size: 9px; font-style: normal; font-weight: 900; letter-spacing: .06em; }
 
 .dc-check { display: inline-flex; align-items: center; gap: 6px; color: #d8d8d4; font-size: 12px; font-weight: 800; cursor: pointer; }
 .dc-check input { width: 16px; height: 16px; accent-color: #3f8fdb; }
