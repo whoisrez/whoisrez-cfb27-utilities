@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Rebuilt the interface code as one app instead of a base page plus a dozen scripts that re-drew it after loading. Pages now appear complete right away, without the brief flash of older text after importing or syncing.
+- Error messages for a failed import, sync, or season close now stay visible instead of being overwritten.
+- Removed the unfinished save-writer and "Compare Manual Move" debug tools.
+- Organized source into `main/`, `renderer/`, `shared/`, and `styles/`; removed old build scripts and unused files.
+- Added a CI check (typecheck + package build) for pull requests.
+
 ## v0.1.1
 
 - Replaces the previous Windows app icon with the new CFB 27 Utilities question-mark football badge.

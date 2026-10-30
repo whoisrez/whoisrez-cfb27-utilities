@@ -62,6 +62,19 @@ npm.cmd start
 
 Development runs use Electron's normal AppData storage. Packaged portable releases use the `data` folder beside the executable.
 
+## Project layout
+
+```text
+src/
+  main/        Electron main process: window, IPC, history file, save readers (run in worker threads)
+  preload.ts   Typed bridge exposed to the window as promoAPI / teamNeedsAPI
+  renderer/    The interface: app.ts (state + events), promotion/ (rules + pages), team-needs/
+  shared/      Types and roster math used by both sides
+  styles/      Stylesheets, loaded in numbered order from styles/index.css
+```
+
+`npm run typecheck` checks the whole project. CI runs it plus a full package build on every pull request.
+
 ## Source history
 
 CFB 27 Utilities combines the tested functionality from the standalone **CFB27 Team Needs** and **CFB27 Promotion/Relegation** projects. Those standalone repositories remain separate for reference and standalone use.
