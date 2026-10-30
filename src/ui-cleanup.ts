@@ -279,6 +279,7 @@ async function enhance(): Promise<void> {
     const latest = await api.getLatestSnapshot() ?? review;
     const history = await api.getHistory(review.dynastyId);
     const title = document.querySelector<HTMLElement>('#pageTitle')?.textContent?.trim() ?? '';
+    if (document.body.classList.contains('depth-chart-active')) return;
     cleanHeader(title);
     cleanStatus(review, latest, history);
     cleanSummary(review, latest, history);

@@ -22,6 +22,14 @@ The portable build stores persistent tracker data in the **`data`** folder besid
 - Groups positions into the roster targets used by the Team Needs planner.
 - Keeps its own **weekly Sync** action so roster/recruiting data can be refreshed without running offseason logic.
 
+### Roster → Depth Chart
+
+- Builds the **defensive depth chart** for the user-controlled team from the save's ratings.
+- Position-locked: every base spot uses only players listed at that position, so blowout subs never pull a starter to another spot.
+- Covers the base spots and the sub packages (RLE, RRE, RDT, NT, SUBLB, SLCB), each ranked by the ratings that package uses.
+- Shows a current vs. recommended preview with the reason for every pick before anything is written.
+- **Write to New Save Copy** saves a versioned copy beside the original (`<save>-DC-v1`, `-v2`, …), then re-reads it to verify every spot. The original save is never modified.
+
 ### Offseason → Promotion / Relegation
 
 - Tracks the two-tier conference promotion/relegation system.

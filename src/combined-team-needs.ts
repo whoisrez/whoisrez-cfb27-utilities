@@ -392,6 +392,10 @@ nav.addEventListener('click', (event) => {
     nav.querySelector('#seasonNav')?.classList.toggle('open');
     return;
   }
+  if (target.dataset.toolPage && target.dataset.toolPage !== 'team-needs') {
+    setTeamNeedsShell(false);
+    return;
+  }
   if (target.dataset.toolPage === 'team-needs') {
     event.preventDefault();
     event.stopPropagation();
