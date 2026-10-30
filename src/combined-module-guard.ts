@@ -48,3 +48,5 @@ document.addEventListener('change', () => {
   setTimeout(protectCombinedPage, 5);
 });
 protectCombinedPage();
+
+export {};

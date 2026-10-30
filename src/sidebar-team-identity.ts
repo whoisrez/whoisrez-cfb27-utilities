@@ -105,3 +105,5 @@ teamSelect?.addEventListener('change', () => {
   const name = option?.textContent?.replace(/\s*•\s*User\s*$/, '').trim();
   if (name && name !== activeTeamName) void renderTeam(name);
 });
+
+export {};
