@@ -18,7 +18,7 @@ fs.rmSync(portableDataDir, { recursive: true, force: true });
 fs.writeFileSync(path.join(portableAppDir, 'README.txt'), [
   'CFB 27 Utilities - Portable Windows Build', '',
   'Keep this entire folder together and run CFB 27 Utilities.exe.',
-  'The app is read-only with respect to CFB 27 dynasty files.',
+  'The app only writes a dynasty save from Depth Chart, and always to a new copy unless you pick the original.',
   'App data and Promotion/Relegation history are stored in the data folder beside the executable.',
   'Back up the data folder if you move computers.', ''
 ].join('\r\n'), 'utf8');

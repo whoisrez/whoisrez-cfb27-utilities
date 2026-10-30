@@ -26,12 +26,11 @@ const config: ForgeConfig = {
   plugins: [
     new VitePlugin({
       build: [
-        { entry: 'src/main.ts', config: 'vite.main.config.ts', target: 'main' },
+        { entry: 'src/main/main.ts', config: 'vite.main.config.ts', target: 'main' },
         { entry: 'src/preload.ts', config: 'vite.preload.config.ts', target: 'preload' },
-        { entry: 'src/save-reader-worker.ts', config: 'vite.worker.config.ts', target: 'preload' },
-        { entry: 'src/team-needs-worker.ts', config: 'vite.worker.config.ts', target: 'preload' },
-        { entry: 'src/conference-writer-worker.ts', config: 'vite.worker.config.ts', target: 'preload' },
-        { entry: 'src/depth-chart-worker.ts', config: 'vite.worker.config.ts', target: 'preload' },
+        { entry: 'src/main/workers/save-reader-worker.ts', config: 'vite.worker.config.ts', target: 'preload' },
+        { entry: 'src/main/workers/team-needs-worker.ts', config: 'vite.worker.config.ts', target: 'preload' },
+        { entry: 'src/main/workers/depth-chart-worker.ts', config: 'vite.worker.config.ts', target: 'preload' },
       ],
       renderer: [{ name: 'main_window', config: 'vite.renderer.config.ts' }],
     }),

@@ -1,0 +1,19 @@
+/*
+ * Stylesheets load in this exact order; later files override earlier ones.
+ * (Kept as separate layers because the original app grew one override file
+ * at a time — merging them without reordering keeps the look identical.)
+ */
+@import './01-theme-blue.css';
+@import './02-team-needs-standalone.css';
+@import './03-sidebar.css';
+@import './04-sidebar-team-identity.css';
+@import './05-sidebar-nav.css';
+@import './06-readability.css';
+@import './07-base.css';
+@import './08-team-needs.css';
+@import './09-team-needs-polish.css';
+@import './10-independent.css';
+@import './11-history.css';
+@import './12-review-verification.css';
+@import './13-pages.css';
+@import './14-depth-chart.css';
