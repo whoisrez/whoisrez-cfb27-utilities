@@ -17,5 +17,11 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run typecheck
-      - name: Package app (verifies the Vite/Electron Forge build)
-        run: npm run package
+      - name: Build portable app (verifies the Vite/Electron Forge build)
+        run: npm run make
+      - name: Upload test build
+        uses: actions/upload-artifact@v4
+        with:
+          name: CFB-27-Utilities-test-build
+          path: out/portable/
+          retention-days: 14
