@@ -48,17 +48,24 @@ export type DcSlotPlan = {
   changed: boolean;
 };
 
-export type DcPlan = { slots: DcSlotPlan[] };
+export type DcPlan = { slots: DcSlotPlan[]; schemeId: string; schemeLabel: string };
 
 export type DcTeamOption = { teamIndex: number; teamName: string; isUserControlled: boolean };
 
+/** Everything the page needs to build a chart; the plan itself is built in the window from these + settings. */
 export type DepthChartLoad = {
   filePath: string;
   teams: DcTeamOption[];
   teamIndex: number;
   teamName: string;
   players: DcPlayerView[];
-  plan: DcPlan;
+  /** Spots the game uses per list (the save's array sizes). */
+  sizes: Record<string, number>;
+  /** Current depth chart rows per list. */
+  current: Record<string, number[]>;
+  /** Schemes stored on the team (e.g. DEF_3_4_MULTIPLE, OFF_AIR_RAID). */
+  defenseScheme: string;
+  offenseScheme: string;
 };
 
 export type DepthChartWriteRequest = {

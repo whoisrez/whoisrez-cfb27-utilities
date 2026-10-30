@@ -11,6 +11,8 @@
 - Every change explains why it beats the player your chart has there now.
 - **Injuries:** injured players keep their spot (marked OUT), and the next healthy player is shown as the one who plays.
 - Tabs are ordered Offense, Defense, Special Teams.
+- **Works with every defensive playbook.** Starters per spot follow the scheme stored in the save (4-3, 3-4, 4-2-5, 3-3-5, 3-3-5 Tite, 3-2-6, Multiple), or one picked in settings, and can be set per spot.
+- **Customize logic:** edit the rating weights behind all 27 formulas (every spot, package and return role), pick "overall first" or "ratings only", set the tie window and the "clearly better" margin, switch each rule on or off, and apply quick leans (Speed / Strength / Football IQ first). Changes re-rank instantly and are saved; settings can be copied and pasted to share.
 - Depth Chart is rebuilt on the new app structure (same rules and save-copy safety as v0.2.0).
 - App cleanup:
   - Rebuilt the interface code as one app instead of a base page plus a dozen scripts that re-drew it after loading. Pages now appear complete right away, without the brief flash of older text after importing or syncing.

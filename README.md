@@ -29,6 +29,9 @@ The portable build stores persistent tracker data in the **`data`** folder besid
 - Overall sets the order; within 1 point, the ratings that matter for that spot break the tie. Short groups borrow a spare from the same unit who is on no other list.
 - Packages rank by what they're for: pass rush (RLE/RRE/RDT), run fit (NT), slot coverage (SLCB), receiving back (3DRB), power back (PWHB), slot receiver (SLWR), open-field (GAD).
 - Special teams: kickers and punters back each other up; returners and the long snapper come from non-starters first.
+- Follows the defensive scheme in the save (4-3, 3-4, 4-2-5, 3-3-5, 3-3-5 Tite, 3-2-6, Multiple) for how many players start at each spot.
+- **Customize logic:** every rating weight, the ordering rule, tie window, keep-current margin, starters per spot and each rule switch can be edited; settings are saved and can be copied/pasted to share.
+- Keeps your current chart unless a change is clearly better, explains each change against what you have, and keeps injured players in their spot (the next healthy player plays).
 - Shows current vs. recommended with the reason for every pick before anything is written, and lets you choose which lists to write.
 - **Write to New Save Copy** saves a versioned copy beside the original (`<save>-DC-v1`, `-v2`, …) and re-reads it to verify every spot. The original save is never modified.
 

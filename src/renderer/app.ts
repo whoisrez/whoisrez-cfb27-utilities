@@ -1,12 +1,15 @@
 // App state and event handling. All rendering goes through render(); pages are
 // plain HTML builders in ./promotion/pages.ts, ./team-needs/page.ts and ./depth-chart/page.ts.
-import type { DcSide, DepthChartApi, DepthChartLoad } from '../shared/depth-chart';
+import type { DcPlan, DcSide, DepthChartApi, DepthChartLoad } from '../shared/depth-chart';
+import { buildDepthChart } from '../shared/depth-chart-rules';
+import { applyPreset, DEFAULT_SETTINGS, normalizeSettings, PRESETS, weightsFor, type DcSettings, type ScoreKey } from '../shared/depth-chart-settings';
 import type { DynastySnapshot, PromoApi, StoredSeason, TeamNeedsApi, TeamNeedsDynasty } from '../shared/types';
 import { createBrand } from './brand';
 import {
   defaultInclude, DEPTH_CHART_SUBTITLE, DEPTH_CHART_TITLE, depthChartTeamCount, depthChartTeamOptions, renderDepthChart,
   type DepthChartView,
 } from './depth-chart/page';
+import { loadSettings, rememberedTeam, rememberTeam, saveSettings } from './depth-chart/storage';
 import { errorMessage, esc, plural, saveFileName } from './html';
 import {
   promoHeader, promoStatus, renderAlignment, renderConferenceHistory, renderConferences, renderDashboard,
@@ -21,8 +24,6 @@ import { chooseTeam, readManualRow, renderTeamNeeds, selectableTeams, teamOption
 import { clearManualValues, loadNeedsOnly, rememberTeamIndex, saveManualValues, saveNeedsOnly } from './team-needs/storage';
 
 type Page = 'team-needs' | 'depth-chart' | PromoPage;
-
-const DC_TEAM_KEY = 'cfb27-depth-chart-team-index';
 
 export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: TeamNeedsApi, depthChartApi: DepthChartApi): void {
   const ui = mountShell(root);
@@ -45,6 +46,11 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
     needsOnly: loadNeedsOnly(),
     // Depth Chart
     depthChart: null as DepthChartLoad | null,
+    dcPlan: null as DcPlan | null,
+    dcSettings: loadSettings(),
+    dcShowSettings: false,
+    dcFormula: 'edge' as ScoreKey,
+    dcPasteOpen: false,
     depthChartStale: true,
     dcSide: 'offense' as DcSide,
     dcInclude: new Set<string>(),
@@ -184,13 +190,28 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
     return state.collapsed.get(year)!;
   }
 
+  let rendering = false;
   function render(): void {
+    if (rendering) {
+      setTimeout(render, 0);
+      return;
+    }
+    rendering = true;
+    try {
+      renderPage();
+    } finally {
+      rendering = false;
+    }
+  }
+
+  function renderPage(): void {
     renderNav();
     renderTopbar();
     if (state.page === 'depth-chart') {
       renderHeader(DEPTH_CHART_TITLE, DEPTH_CHART_SUBTITLE);
       const [status, content] = renderDepthChart({
-        data: state.depthChart, side: state.dcSide, include: state.dcInclude, busy: state.dcBusy, message: state.dcMessage,
+        data: state.depthChart, plan: state.dcPlan, settings: state.dcSettings, side: state.dcSide, include: state.dcInclude,
+        busy: state.dcBusy, showSettings: state.dcShowSettings, formula: state.dcFormula, pasteOpen: state.dcPasteOpen, message: state.dcMessage,
       });
       ui.status.innerHTML = state.statusMessage ?? status;
       ui.content.innerHTML = content;
@@ -221,14 +242,89 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
 
   // ---- Depth Chart ------------------------------------------------------------------------------
 
-  function rememberedDepthChartTeam(): number | null {
-    try {
-      const raw = localStorage.getItem(DC_TEAM_KEY);
-      return raw == null ? null : Number(raw);
-    } catch { return null; }
+  /** Re-rank with the current settings (instant; the save is not re-read). */
+  function rebuildPlan(): void {
+    const data = state.depthChart;
+    state.dcPlan = data
+      ? buildDepthChart({ players: data.players, sizes: data.sizes, current: data.current, savedScheme: data.defenseScheme, settings: state.dcSettings })
+      : null;
+    state.dcInclude = state.dcPlan ? defaultInclude(state.dcPlan) : new Set();
   }
 
-  async function loadDepthChart(teamIndex: number | null = state.depthChart?.teamIndex ?? rememberedDepthChartTeam()): Promise<void> {
+  function updateSettings(next: DcSettings, message?: string): void {
+    state.dcSettings = normalizeSettings(next);
+    saveSettings(state.dcSettings);
+    rebuildPlan();
+    if (message) state.dcMessage = { tone: 'info', html: message };
+    render();
+  }
+
+  function changeSetting(input: HTMLInputElement | HTMLSelectElement): void {
+    const settings = { ...state.dcSettings, starters: { ...state.dcSettings.starters }, weights: { ...state.dcSettings.weights } } as DcSettings;
+    const { dcSetting, dcStarter, dcWeight } = input.dataset;
+    if (dcSetting) {
+      const key = dcSetting as keyof DcSettings;
+      const value = input instanceof HTMLInputElement && input.type === 'checkbox' ? input.checked
+        : input instanceof HTMLInputElement && input.type === 'number' ? Number(input.value) : input.value;
+      (settings as Record<string, unknown>)[key] = value;
+    } else if (dcStarter) {
+      settings.starters[dcStarter] = Number(input.value);
+    } else if (dcWeight) {
+      const formula = state.dcFormula;
+      const weights = { ...weightsFor(settings, formula) };
+      const value = Number(input.value);
+      if (Number.isFinite(value) && value > 0) weights[dcWeight] = value; else delete weights[dcWeight];
+      settings.weights[formula] = weights;
+    } else {
+      return;
+    }
+    // A number field commits on blur, which can fire while render() is replacing the page;
+    // apply the change after the current render finishes.
+    setTimeout(() => updateSettings(settings), 0);
+  }
+
+  async function settingsAction(action: string): Promise<void> {
+    const settings = state.dcSettings;
+    if (action === 'toggle-settings') {
+      state.dcShowSettings = !state.dcShowSettings;
+      render();
+    } else if (action === 'reset-all') {
+      state.dcPasteOpen = false;
+      updateSettings({ ...DEFAULT_SETTINGS }, 'All depth chart logic is back to the defaults.');
+    } else if (action === 'reset-starters') {
+      updateSettings({ ...settings, starters: {} });
+    } else if (action === 'reset-formula') {
+      const weights = { ...settings.weights };
+      delete weights[state.dcFormula];
+      updateSettings({ ...settings, weights });
+    } else if (action.startsWith('preset:')) {
+      const preset = PRESETS.find((item) => item.id === action.slice(7));
+      if (preset) updateSettings(applyPreset(settings, preset.ratings), `Applied “${preset.label}” to every formula. Reset everything to undo.`);
+    } else if (action === 'copy') {
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(settings, null, 2));
+        state.dcMessage = { tone: 'success', html: 'Settings copied. Paste them into another copy of CFB 27 Utilities, or share them.' };
+      } catch {
+        state.dcMessage = { tone: 'error', html: 'Could not copy to the clipboard.' };
+      }
+      render();
+    } else if (action === 'paste-toggle') {
+      state.dcPasteOpen = !state.dcPasteOpen;
+      render();
+    } else if (action === 'paste-apply') {
+      const text = ui.content.querySelector<HTMLTextAreaElement>('#dcPasteBox')?.value ?? '';
+      try {
+        const parsed = JSON.parse(text);
+        state.dcPasteOpen = false;
+        updateSettings(normalizeSettings(parsed), 'Pasted settings applied.');
+      } catch {
+        state.dcMessage = { tone: 'error', html: 'Those settings could not be read. Copy them again from CFB 27 Utilities.' };
+        render();
+      }
+    }
+  }
+
+  async function loadDepthChart(teamIndex: number | null = state.depthChart?.teamIndex ?? rememberedTeam()): Promise<void> {
     state.dcBusy = true;
     state.dcMessage = { tone: 'info', html: 'Reading the depth chart from your save…' };
     render();
@@ -236,9 +332,9 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
       const loaded = await depthChartApi.load(teamIndex);
       state.depthChart = loaded;
       state.depthChartStale = false;
-      state.dcInclude = defaultInclude(loaded);
+      rebuildPlan();
       state.dcMessage = null;
-      try { localStorage.setItem(DC_TEAM_KEY, String(loaded.teamIndex)); } catch { /* optional */ }
+      rememberTeam(loaded.teamIndex);
     } catch (error) {
       state.dcMessage = { tone: 'error', html: `<strong>Could not read the depth chart.</strong> ${esc(errorMessage(error))}` };
     } finally {
@@ -249,8 +345,9 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
 
   async function writeDepthChart(): Promise<void> {
     const data = state.depthChart;
-    if (!data || state.dcBusy) return;
-    const slots = data.plan.slots.filter((slot) => state.dcInclude.has(slot.key));
+    const plan = state.dcPlan;
+    if (!data || !plan || state.dcBusy) return;
+    const slots = plan.slots.filter((slot) => state.dcInclude.has(slot.key));
     if (!slots.length) return;
     state.dcBusy = true;
     state.dcMessage = { tone: 'info', html: 'Writing and verifying the new save copy…' };
@@ -445,7 +542,16 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
       if (box?.dataset.dcInclude) {
         if (box.checked) state.dcInclude.add(box.dataset.dcInclude); else state.dcInclude.delete(box.dataset.dcInclude);
         render();
+        return;
       }
+      const formula = target.closest<HTMLSelectElement>('select[data-dc-formula]');
+      if (formula) {
+        state.dcFormula = formula.value as ScoreKey;
+        render();
+        return;
+      }
+      const setting = target.closest<HTMLInputElement | HTMLSelectElement>('[data-dc-setting],[data-dc-starter],[data-dc-weight]');
+      if (setting) changeSetting(setting);
       return;
     }
     if (state.page === 'team-needs') {
@@ -478,8 +584,10 @@ export function startApp(root: HTMLElement, promoApi: PromoApi, teamNeedsApi: Te
       if (tab) {
         state.dcSide = tab.dataset.dcSide as DcSide;
         render();
-      } else if (toggle && state.depthChart) {
-        const changed = state.depthChart.plan.slots.filter((slot) => slot.side === toggle.dataset.dcToggleSide && slot.changed);
+      } else if (closest('[data-dc-action]')) {
+        void settingsAction(closest('[data-dc-action]')!.dataset.dcAction ?? '');
+      } else if (toggle && state.dcPlan) {
+        const changed = state.dcPlan.slots.filter((slot) => slot.side === toggle.dataset.dcToggleSide && slot.changed);
         const allOn = changed.every((slot) => state.dcInclude.has(slot.key));
         for (const slot of changed) if (allOn) state.dcInclude.delete(slot.key); else state.dcInclude.add(slot.key);
         render();

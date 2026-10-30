@@ -10,7 +10,7 @@
 import Franchise from 'madden-franchise';
 import type { DcInjury, DcPlayerView, DcTeamOption, DepthChartLoad, DepthChartWriteRequest } from '../../shared/depth-chart';
 import { DISPLAY_POSITION } from '../../shared/depth-chart';
-import { ALL_SLOT_KEYS, buildDepthChart } from './rules';
+import { ALL_SLOT_KEYS } from '../../shared/depth-chart-rules';
 
 type ReferenceData = { tableId: number; rowNumber: number };
 type FieldLike = { key?: string; value?: unknown; isReference?: boolean; referenceData?: { tableId?: number; rowNumber?: number } | null };
@@ -42,6 +42,9 @@ const RATING_FIELDS: Record<string, string> = {
   drr: 'DeepRouteRunningRating', pbk: 'PassBlockRating', pbp: 'PassBlockPowerRating', pbf: 'PassBlockFinesseRating',
   rbk: 'RunBlockRating', lbk: 'LeadBlockRating', ibl: 'ImpactBlockingRating', kpw: 'KickPowerRating',
   kac: 'KickAccuracyRating', ret: 'KickReturnRating', ls: 'LongSnapRating',
+  jmp: 'JumpingRating', sta: 'StaminaRating', tgh: 'ToughnessRating', inj: 'InjuryRating', tor: 'ThrowOnTheRunRating',
+  pac: 'PlayActionRating', bsk: 'BreakSackRating', spm: 'SpinMoveRating', sfa: 'StiffArmRating', spc: 'SpectacularCatchRating',
+  rbp: 'RunBlockPowerRating', rbf: 'RunBlockFinesseRating',
 };
 
 function largestTable(franchise: FranchiseLike, name: string): TableLike {
@@ -202,7 +205,11 @@ export async function loadDepthChart(filePath: string, requestedTeamIndex?: numb
     sizes[key] = slot.size;
     current[key] = slot.rows;
   }
-  return { filePath, teams, teamIndex, teamName: teamName(team), players, plan: buildDepthChart({ players, sizes, current }) };
+  return {
+    filePath, teams, teamIndex, teamName: teamName(team), players, sizes, current,
+    defenseScheme: str(team, 'CurrentDefensiveScheme') || str(team, 'DefaultDefensiveScheme'),
+    offenseScheme: str(team, 'CurrentOffensiveScheme') || str(team, 'DefaultOffensiveScheme'),
+  };
 }
 
 function validateRequest(request: DepthChartWriteRequest, arrays: Map<string, SlotArray>, teamPlayers: Set<number>): void {
