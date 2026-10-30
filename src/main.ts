@@ -7,6 +7,7 @@ import type { DynastyHistory, DynastySnapshot, HistoryStore, Movement, StoredSea
 import type { TeamNeedsDynasty } from './team-needs-reader';
 import { resolveTeamNeedsBranding } from './team-needs-branding-main';
 import './conference-write-ipc';
+import './depth-chart-ipc';
 
 if (app.isPackaged) app.setPath('userData', path.join(path.dirname(process.execPath), 'data'));
 if (started) app.quit();

@@ -6,6 +6,11 @@ contextBridge.exposeInMainWorld('teamNeedsAPI', {
   getTeamBranding: (teamName: string) => ipcRenderer.invoke('team-needs:team-branding', teamName),
 });
 
+contextBridge.exposeInMainWorld('depthChartAPI', {
+  load: (filePath: string, teamIndex?: number | null) => ipcRenderer.invoke('depth-chart:load', filePath, teamIndex ?? null),
+  write: (filePath: string, request: unknown) => ipcRenderer.invoke('depth-chart:write', filePath, request),
+});
+
 contextBridge.exposeInMainWorld('promoAPI', {
   chooseAndLoad: () => ipcRenderer.invoke('promo:choose-and-load'),
   syncCurrentSave: () => ipcRenderer.invoke('promo:sync-current-save'),

@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.0
+
+- Adds **Roster → Depth Chart**, a defensive depth chart builder for the user-controlled team.
+- Fills every base spot (LEDG, REDG, DT, SAM, MIKE, WILL, CB, FS, SS) with players listed at that position only, so blowout subs never pull a starter to another spot.
+- Orders by overall, with position-specific ratings breaking ties within 1 point; short groups borrow spare players from the same unit who are on no other list.
+- Builds the sub packages too: RLE/RRE/RDT by pass rush, NT by run fit, SUBLB in MIKE order, and SLCB by slot coverage.
+- Shows a current-vs-recommended preview with the reason for every pick, flags players who are currently out of position, and lets you choose which spots to write.
+- Writes to a new versioned copy of the save (`<save>-DC-v1`, `-v2`, …) and re-reads it to verify every spot. The original save is never modified.
+
 ## v0.1.1
 
 - Replaces the previous Windows app icon with the new CFB 27 Utilities question-mark football badge.

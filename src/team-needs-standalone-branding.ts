@@ -114,3 +114,5 @@ observer.observe(document.body, { childList: true, subtree: true, attributes: tr
 document.addEventListener('change', () => void syncBranding());
 document.addEventListener('click', () => setTimeout(() => void syncBranding(), 0));
 void syncBranding();
+
+export {};

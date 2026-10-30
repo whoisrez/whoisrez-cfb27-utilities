@@ -49,13 +49,13 @@ let selectedTeamIndex: number | null = null;
 let needsOnly = localStorage.getItem(NEEDS_ONLY_KEY) === 'true';
 
 const promoAPI = (window as unknown as { promoAPI: PromoBridge }).promoAPI;
-const nav = document.querySelector<HTMLElement>('#nav');
-const content = document.querySelector<HTMLElement>('#content');
-const status = document.querySelector<HTMLElement>('#status');
-const pageTitle = document.querySelector<HTMLElement>('#pageTitle');
-const pageSubtitle = document.querySelector<HTMLElement>('#pageSubtitle');
-const promoSync = document.querySelector<HTMLButtonElement>('#syncBtn');
-const promoImport = document.querySelector<HTMLButtonElement>('#importBtn');
+const nav = document.querySelector<HTMLElement>('#nav')!;
+const content = document.querySelector<HTMLElement>('#content')!;
+const status = document.querySelector<HTMLElement>('#status')!;
+const pageTitle = document.querySelector<HTMLElement>('#pageTitle')!;
+const pageSubtitle = document.querySelector<HTMLElement>('#pageSubtitle')!;
+const promoSync = document.querySelector<HTMLButtonElement>('#syncBtn')!;
+const promoImport = document.querySelector<HTMLButtonElement>('#importBtn')!;
 const actions = document.querySelector<HTMLElement>('.topbar .actions');
 const brandStrong = document.querySelector<HTMLElement>('.brand strong');
 const topbarCopy = pageTitle?.parentElement;
@@ -390,6 +390,10 @@ nav.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
     nav.querySelector('#seasonNav')?.classList.toggle('open');
+    return;
+  }
+  if (target.dataset.toolPage && target.dataset.toolPage !== 'team-needs') {
+    setTeamNeedsShell(false);
     return;
   }
   if (target.dataset.toolPage === 'team-needs') {
